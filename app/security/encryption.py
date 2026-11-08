@@ -41,3 +41,15 @@ class TokenEncryptionService:
 
 
 token_encryption = TokenEncryptionService()
+
+
+class TokenEncryptor:
+    """Yordamchi statik interfeys"""
+    @staticmethod
+    def encrypt_token(plain_text: str) -> str:
+        return token_encryption.encrypt(plain_text)
+
+    @staticmethod
+    def decrypt_token(encrypted_payload: str) -> str:
+        return token_encryption.decrypt(encrypted_payload)
+
