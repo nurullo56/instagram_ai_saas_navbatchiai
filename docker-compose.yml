@@ -46,6 +46,45 @@ services:
     volumes:
       - miniodata:/data
 
+  api:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: saas_api
+    restart: always
+    ports:
+      - "8000:8000"
+    environment:
+      - APP_ENV=production
+      - DEBUG=False
+      - DATABASE_URL=postgresql+asyncpg://postgres:postgrespassword@postgres:5432/instagram_saas
+      - REDIS_URL=redis://redis:6379/0
+      - META_APP_ID=your_meta_app_id
+      - META_APP_SECRET=your_meta_app_secret
+      - META_WEBHOOK_VERIFY_TOKEN=your_custom_webhook_verification_token
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+
+  worker:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: saas_worker
+    restart: always
+    command: ["python", "-m", "arq", "app.workers.tasks.WorkerSettings"]
+    environment:
+      - APP_ENV=production
+      - DATABASE_URL=postgresql+asyncpg://postgres:postgrespassword@postgres:5432/instagram_saas
+      - REDIS_URL=redis://redis:6379/0
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+
 volumes:
   pgdata:
   redisdata:
