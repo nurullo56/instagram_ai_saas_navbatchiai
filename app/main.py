@@ -9,6 +9,7 @@ from app.api.routers.instagram import router as instagram_router
 from app.api.routers.webhooks import router as webhooks_router
 from app.api.routers.ai import router as ai_router
 from app.api.routers.flows import router as flows_router
+from app.api.routers.billing import router as billing_router
 
 
 @asynccontextmanager
@@ -45,6 +46,7 @@ app.include_router(instagram_router, prefix="/api/v1")
 app.include_router(webhooks_router, prefix="/api/v1")
 app.include_router(ai_router, prefix="/api/v1")
 app.include_router(flows_router, prefix="/api/v1")
+app.include_router(billing_router, prefix="/api/v1")
 
 
 @app.get("/health", tags=["System"])
