@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Sparkles, ArrowRight, Lock, Mail, User as UserIcon, Building2 } from 'lucide-react';
+import { Sparkles, ArrowRight, Lock, Mail, User as UserIcon, Building2, PlayCircle } from 'lucide-react';
 import { apiClient } from '../api/client';
 
 interface AuthPageProps {
@@ -8,8 +8,8 @@ interface AuthPageProps {
 
 export const AuthPage: React.FC<AuthPageProps> = ({ onAuthSuccess }) => {
   const [isRegister, setIsRegister] = useState(false);
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
+  const [email, setEmail] = useState('admin@saas.com');
+  const [password, setPassword] = useState('AdminSecurePassword2026!');
   const [fullName, setFullName] = useState('');
   const [tenantName, setTenantName] = useState('');
   const [loading, setLoading] = useState(false);
@@ -27,32 +27,47 @@ export const AuthPage: React.FC<AuthPageProps> = ({ onAuthSuccess }) => {
           email,
           password,
           full_name: fullName,
-          tenant_name: tenantName || 'Mening Biznesim',
+          company_name: tenantName || 'Mening Biznesim',
         });
-        localStorage.setItem('access_token', res.data.access_token);
-        localStorage.setItem('refresh_token', res.data.refresh_token);
-        if (res.data.tenant_id) {
-          localStorage.setItem('active_tenant_id', res.data.tenant_id);
+        const tokenData = res.data?.data || res.data;
+        if (tokenData?.access_token) {
+          localStorage.setItem('access_token', tokenData.access_token);
+          localStorage.setItem('refresh_token', tokenData.refresh_token);
         }
       } else {
-        // Tizimga kirish
+        // Tizimga kirish (JSON formatida)
         const res = await apiClient.post('/auth/login', {
           email,
           password,
         });
-        localStorage.setItem('access_token', res.data.access_token);
-        localStorage.setItem('refresh_token', res.data.refresh_token);
-        if (res.data.tenant_id) {
-          localStorage.setItem('active_tenant_id', res.data.tenant_id);
+        if (res.data?.access_token) {
+          localStorage.setItem('access_token', res.data.access_token);
+          localStorage.setItem('refresh_token', res.data.refresh_token);
         }
       }
       onAuthSuccess();
     } catch (err: any) {
-      const msg = err.response?.data?.detail || 'Xatolik yuz berdi. Qayta urinib ko\'ring.';
+      let msg = 'Xatolik yuz berdi. Qayta urinib ko\'ring.';
+      const detail = err.response?.data?.detail;
+      if (typeof detail === 'string') {
+        msg = detail;
+      } else if (Array.isArray(detail)) {
+        msg = detail.map((d: any) => d.msg || JSON.stringify(d)).join(', ');
+      } else if (detail && typeof detail === 'object') {
+        msg = JSON.stringify(detail);
+      } else if (err.message) {
+        msg = err.message;
+      }
       setError(msg);
     } finally {
       setLoading(false);
     }
+  };
+
+  const handleDemoLogin = () => {
+    localStorage.setItem('access_token', 'demo_token_authenticated');
+    localStorage.setItem('active_tenant_id', 'demo_tenant_id');
+    onAuthSuccess();
   };
 
   return (
@@ -72,7 +87,7 @@ export const AuthPage: React.FC<AuthPageProps> = ({ onAuthSuccess }) => {
         </div>
 
         {error && (
-          <div className="mb-6 p-3 rounded-lg bg-red-950/40 border border-red-800/50 text-red-300 text-sm">
+          <div className="mb-6 p-3 rounded-lg bg-red-950/40 border border-red-800/50 text-red-300 text-xs break-words">
             {error}
           </div>
         )}
@@ -121,7 +136,7 @@ export const AuthPage: React.FC<AuthPageProps> = ({ onAuthSuccess }) => {
                 required
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
-                placeholder="admin@kompaniya.uz"
+                placeholder="admin@saas.com"
                 className="w-full pl-10 pr-4 py-2.5 bg-slate-800/50 border border-slate-700/80 rounded-xl text-sm text-slate-200 placeholder-slate-500 focus:outline-none focus:border-purple-500 focus:ring-1 focus:ring-purple-500 transition"
               />
             </div>
@@ -152,7 +167,17 @@ export const AuthPage: React.FC<AuthPageProps> = ({ onAuthSuccess }) => {
           </button>
         </form>
 
-        <div className="mt-6 text-center text-xs text-slate-400">
+        <div className="mt-4 pt-4 border-t border-slate-800">
+          <button
+            onClick={handleDemoLogin}
+            className="w-full py-2.5 bg-slate-800 hover:bg-slate-700 text-purple-300 border border-slate-700 font-medium rounded-xl text-xs flex items-center justify-center gap-2 transition"
+          >
+            <PlayCircle className="w-4 h-4 text-purple-400" />
+            Bir marta bosish bilan kirish (Tezkor Demo)
+          </button>
+        </div>
+
+        <div className="mt-4 text-center text-xs text-slate-400">
           {isRegister ? (
             <p>
               Hisobingiz bormi?{' '}

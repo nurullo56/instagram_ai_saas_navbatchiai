@@ -40,6 +40,20 @@ async def register(
 
 @router.post("/login", response_model=TokenResponse)
 async def login(
+    data: LoginRequest,
+    session: AsyncSession = Depends(get_db)
+):
+    service = AuthService(session)
+    user, tenant_id = await service.authenticate(
+        email=data.email,
+        password=data.password
+    )
+    tokens = service.generate_tokens(user.id, tenant_id)
+    return TokenResponse(**tokens)
+
+
+@router.post("/token", response_model=TokenResponse, include_in_schema=False)
+async def login_form_token(
     form_data: OAuth2PasswordRequestForm = Depends(),
     session: AsyncSession = Depends(get_db)
 ):

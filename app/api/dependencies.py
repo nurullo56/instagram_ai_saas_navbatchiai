@@ -13,7 +13,7 @@ from app.repositories.tenant_repo import TenantRepository
 from app.security.jwt import decode_token
 from app.security.tenant_context import set_current_tenant_id
 
-oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/api/v1/auth/login")
+oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/api/v1/auth/token")
 
 
 async def get_current_user(
